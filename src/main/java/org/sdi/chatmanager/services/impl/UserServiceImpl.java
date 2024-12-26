@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private static final String REGEX = "User\\{id=(\\d+), email='([^']+)',.*password='([^']+)', role=(\\w+),.*}";
+    private static final String REGEX = "User\\{id=(\\d+), email='([^']+)', firstName='([^']+)', lastName='([^']+)', password='([^']+)', role=(\\w+),.*}";
 
     private final Pattern pattern = Pattern.compile(REGEX);
 
@@ -30,13 +30,17 @@ public class UserServiceImpl implements UserService {
         if (matcher.find()) {
             String id = matcher.group(1);
             String email = matcher.group(2);
-            String password = matcher.group(3);
-            String role = matcher.group(4);
+            String firstName = matcher.group(3);
+            String lastName = matcher.group(4);
+            String password = matcher.group(5);
+            String role = matcher.group(6);
 
             User user = new User();
-            user.setEmail(email);
-            user.setPassword(password);
             user.setId(Long.valueOf(id));
+            user.setEmail(email);
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setPassword(password);
             user.setRole(Role.valueOf(role));
             userRepository.save(user);
         } else {

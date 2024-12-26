@@ -1,20 +1,18 @@
 package org.sdi.chatmanager.dtos;
 
-import org.sdi.chatmanager.entities.User;
-
 import java.util.Date;
 
 public class MessageResponse {
     private Long id;
-    private User sender;
-    private User recipient;
+    private Long senderId;
+    private Long recipientId;
     private String text;
     private Date timestamp;
 
-    public MessageResponse(Long id, User sender, User recipient, String text, Date timestamp) {
+    public MessageResponse(Long id, Long senderId, Long recipientId, String text, Date timestamp) {
         this.id = id;
-        this.sender = sender;
-        this.recipient = recipient;
+        this.senderId = senderId;
+        this.recipientId = recipientId;
         this.text = text;
         this.timestamp = timestamp;
     }
@@ -27,20 +25,20 @@ public class MessageResponse {
         this.id = id;
     }
 
-    public User getSender() {
-        return sender;
+    public Long getSenderId() {
+        return senderId;
     }
 
-    public void setSender(User sender) {
-        this.sender = sender;
+    public void setSenderId(Long senderId) {
+        this.senderId = senderId;
     }
 
-    public User getRecipient() {
-        return recipient;
+    public Long getRecipientId() {
+        return recipientId;
     }
 
-    public void setRecipient(User recipient) {
-        this.recipient = recipient;
+    public void setRecipientId(Long recipientId) {
+        this.recipientId = recipientId;
     }
 
     public String getText() {

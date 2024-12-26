@@ -1,6 +1,7 @@
 package org.sdi.chatmanager.controllers;
 
 import jakarta.validation.Valid;
+import org.sdi.chatmanager.dtos.ConversationResponse;
 import org.sdi.chatmanager.dtos.CreateMessageRequest;
 import org.sdi.chatmanager.dtos.MessageResponse;
 import org.sdi.chatmanager.dtos.PatchMessageRequest;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/messages")
 @Validated
+@CrossOrigin
 public class MessageController {
 
     private final MessageService messageService;
@@ -29,9 +31,14 @@ public class MessageController {
     }
 
     @GetMapping("/conversation")
-    public ResponseEntity<List<MessageResponse>> getConversation(@RequestParam("sender") Long senderId,
-                                                                 @RequestParam("recipient") Long recipientId) {
-        return ResponseEntity.ok(messageService.getConversation(senderId, recipientId));
+    public ResponseEntity<List<MessageResponse>> getConversation(@RequestParam("userId1") Long userId1,
+                                                                 @RequestParam("userId2") Long userId2) {
+        return ResponseEntity.ok(messageService.getConversation(userId1, userId2));
+    }
+
+    @GetMapping("/conversations/{userId}")
+    public ResponseEntity<List<ConversationResponse>> getAllConversations(@PathVariable("userId") Long userId) {
+        return ResponseEntity.ok(messageService.getConversations(userId));
     }
 
     @DeleteMapping("/{messageId}")

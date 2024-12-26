@@ -1,5 +1,6 @@
 package org.sdi.chatmanager.services.impl;
 
+import org.sdi.chatmanager.dtos.ConversationResponse;
 import org.sdi.chatmanager.dtos.CreateMessageRequest;
 import org.sdi.chatmanager.dtos.MessageResponse;
 import org.sdi.chatmanager.dtos.PatchMessageRequest;
@@ -11,10 +12,7 @@ import org.sdi.chatmanager.repositories.UserRepository;
 import org.sdi.chatmanager.services.MessageService;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class MessageServiceImpl implements MessageService {
@@ -44,12 +42,12 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public List<MessageResponse> getConversation(Long senderId, Long recipientId) {
-        User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new NotFoundException("User with ID " + senderId + " not found"));
+    public List<MessageResponse> getConversation(Long userId1, Long userId2) {
+        User sender = userRepository.findById(userId1)
+                .orElseThrow(() -> new NotFoundException("User with ID " + userId1 + " not found"));
 
-        User recipient = userRepository.findById(recipientId)
-                .orElseThrow(() -> new NotFoundException("User with ID " + recipientId + " not found"));
+        User recipient = userRepository.findById(userId2)
+                .orElseThrow(() -> new NotFoundException("User with ID " + userId2 + " not found"));
 
         List<Message> allBySenderAndRecipient = messageRepository.findAllBySenderAndRecipient(sender, recipient);
         List<Message> allByRecipientAndSender = messageRepository.findAllBySenderAndRecipient(recipient, sender);
@@ -62,8 +60,8 @@ public class MessageServiceImpl implements MessageService {
                 .sorted(Comparator.comparing(Message::getTimestamp))
                 .map(message -> new MessageResponse(
                         message.getId(),
-                        message.getSender(),
-                        message.getRecipient(),
+                        message.getSender().getId(),
+                        message.getRecipient().getId(),
                         message.getText(),
                         message.getTimestamp()
                 ))
@@ -87,10 +85,69 @@ public class MessageServiceImpl implements MessageService {
         messageRepository.save(message);
         return new MessageResponse(
                 message.getId(),
-                message.getSender(),
-                message.getRecipient(),
+                message.getSender().getId(),
+                message.getRecipient().getId(),
                 message.getText(),
                 message.getTimestamp()
         );
+    }
+
+    @Override
+    public List<ConversationResponse> getConversations(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with ID " + userId + " not found"));
+
+        List<Message> allBySender = messageRepository.findAllBySender(user);
+        List<Message> allByRecipient = messageRepository.findAllByRecipient(user);
+
+        List<Message> combinedMessages = new ArrayList<>();
+        combinedMessages.addAll(allBySender);
+        combinedMessages.addAll(allByRecipient);
+
+        Map<String, List<Message>> conversations = new HashMap<>();
+        for (Message message : combinedMessages) {
+            String conversationKey = getConversationKey(message, user);
+            conversations.computeIfAbsent(conversationKey, k -> new ArrayList<>()).add(message);
+        }
+
+        List<ConversationResponse> conversationResponses = new ArrayList<>();
+        for (Map.Entry<String, List<Message>> entry : conversations.entrySet()) {
+            List<Message> conversationMessages = entry.getValue();
+
+            Message lastMessage = conversationMessages.stream()
+                    .max(Comparator.comparing(Message::getTimestamp))
+                    .orElseThrow(() -> new RuntimeException("No message found in the conversation"));
+
+            ConversationResponse conversationResponse = getConversationResponse(userId, lastMessage);
+            conversationResponses.add(conversationResponse);
+        }
+
+        return conversationResponses;
+    }
+
+    private static ConversationResponse getConversationResponse(Long userId, Message lastMessage) {
+        ConversationResponse conversationResponse = new ConversationResponse();
+        conversationResponse.setLastMessage(lastMessage.getText());
+        conversationResponse.setLastMessageTimestamp(lastMessage.getTimestamp());
+        conversationResponse.setSent(Objects.equals(lastMessage.getSender().getId(), userId));
+
+        if (Objects.equals(lastMessage.getSender().getId(), userId)) {
+            conversationResponse.setFirstName(lastMessage.getRecipient().getFirstName());
+            conversationResponse.setLastName(lastMessage.getRecipient().getLastName());
+            conversationResponse.setFriendId(lastMessage.getRecipient().getId());
+        } else {
+            conversationResponse.setFirstName(lastMessage.getSender().getFirstName());
+            conversationResponse.setLastName(lastMessage.getSender().getLastName());
+            conversationResponse.setFriendId(lastMessage.getSender().getId());
+        }
+        return conversationResponse;
+    }
+
+    private String getConversationKey(Message message, User user) {
+        if (message.getSender().equals(user)) {
+            return message.getRecipient().getId() + "-" + message.getSender().getId();
+        } else {
+            return message.getSender().getId() + "-" + message.getRecipient().getId();
+        }
     }
 }
