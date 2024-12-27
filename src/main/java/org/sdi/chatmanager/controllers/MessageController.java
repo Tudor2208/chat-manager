@@ -47,7 +47,7 @@ public class MessageController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{messageId}")
+    @PutMapping("/{messageId}")
     public ResponseEntity<MessageResponse> patchMessage(@PathVariable Long messageId,
                                                         @RequestBody @Valid PatchMessageRequest patchMessageRequest) {
         return ResponseEntity.ok(messageService.patchMessage(messageId, patchMessageRequest));

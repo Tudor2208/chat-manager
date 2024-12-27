@@ -38,6 +38,7 @@ public class MessageServiceImpl implements MessageService {
         message.setRecipient(recipient);
         message.setText(createMessageRequest.getText());
         message.setTimestamp(new Date());
+        message.setEdited(false);
         messageRepository.save(message);
     }
 
@@ -63,7 +64,8 @@ public class MessageServiceImpl implements MessageService {
                         message.getSender().getId(),
                         message.getRecipient().getId(),
                         message.getText(),
-                        message.getTimestamp()
+                        message.getTimestamp(),
+                        message.isEdited()
                 ))
                 .toList();
     }
@@ -81,14 +83,16 @@ public class MessageServiceImpl implements MessageService {
                 .orElseThrow(() -> new NotFoundException("Message with ID " + messageId + " not found"));
 
         message.setText(patchMessageRequest.getText());
-        message.setTimestamp(new Date());
+        message.setEdited(true);
         messageRepository.save(message);
+
         return new MessageResponse(
                 message.getId(),
                 message.getSender().getId(),
                 message.getRecipient().getId(),
                 message.getText(),
-                message.getTimestamp()
+                message.getTimestamp(),
+                message.isEdited()
         );
     }
 

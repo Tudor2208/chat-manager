@@ -17,6 +17,15 @@ public class Message {
     private User recipient;
     private String text;
     private Date timestamp;
+    private boolean edited;
+
+    public boolean isEdited() {
+        return edited;
+    }
+
+    public void setEdited(boolean edited) {
+        this.edited = edited;
+    }
 
     public Long getId() {
         return id;

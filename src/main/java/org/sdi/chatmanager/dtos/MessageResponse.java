@@ -8,13 +8,23 @@ public class MessageResponse {
     private Long recipientId;
     private String text;
     private Date timestamp;
+    private boolean edited;
 
-    public MessageResponse(Long id, Long senderId, Long recipientId, String text, Date timestamp) {
+    public MessageResponse(Long id, Long senderId, Long recipientId, String text, Date timestamp, boolean edited) {
         this.id = id;
         this.senderId = senderId;
         this.recipientId = recipientId;
         this.text = text;
         this.timestamp = timestamp;
+        this.edited = edited;
+    }
+
+    public boolean isEdited() {
+        return edited;
+    }
+
+    public void setEdited(boolean edited) {
+        this.edited = edited;
     }
 
     public Long getId() {
