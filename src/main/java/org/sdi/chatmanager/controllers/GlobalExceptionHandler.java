@@ -1,6 +1,8 @@
 package org.sdi.chatmanager.controllers;
 
 import org.sdi.chatmanager.dtos.ErrorDto;
+import org.sdi.chatmanager.exceptions.ExistingMemberException;
+import org.sdi.chatmanager.exceptions.UserAlreadyInvitedException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorDto> handleNotFoundException(Exception ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto(String.valueOf(HttpStatus.NOT_FOUND), ex.getMessage()));
+    }
+
+    @ExceptionHandler(ExistingMemberException.class)
+    public ResponseEntity<ErrorDto> handleExistingMemberException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDto(String.valueOf(HttpStatus.BAD_REQUEST), ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserAlreadyInvitedException.class)
+    public ResponseEntity<ErrorDto> handleUserAlreadyInvitedException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorDto(String.valueOf(HttpStatus.BAD_REQUEST), ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
