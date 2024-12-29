@@ -1,15 +1,18 @@
 package org.sdi.chatmanager.controllers;
 
+import jakarta.validation.Valid;
 import org.sdi.chatmanager.dtos.CreateGroupInviteRequest;
 import org.sdi.chatmanager.dtos.InviteResponse;
 import org.sdi.chatmanager.services.GroupInviteService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/invites")
+@Validated
 public class GroupInviteController {
 
     private final GroupInviteService groupInviteService;
@@ -19,7 +22,7 @@ public class GroupInviteController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createGroupInvite(@RequestBody CreateGroupInviteRequest createGroupInviteRequest) {
+    public ResponseEntity<Void> createGroupInvite(@RequestBody @Valid CreateGroupInviteRequest createGroupInviteRequest) {
         groupInviteService.createGroupInvite(createGroupInviteRequest);
         return ResponseEntity.noContent().build();
     }

@@ -4,25 +4,37 @@ import org.sdi.chatmanager.dtos.ConversationResponse;
 import org.sdi.chatmanager.dtos.CreateMessageRequest;
 import org.sdi.chatmanager.dtos.MessageResponse;
 import org.sdi.chatmanager.dtos.PatchMessageRequest;
+import org.sdi.chatmanager.entities.Group;
+import org.sdi.chatmanager.entities.GroupMessage;
 import org.sdi.chatmanager.entities.Message;
 import org.sdi.chatmanager.entities.User;
 import org.sdi.chatmanager.exceptions.NotFoundException;
+import org.sdi.chatmanager.repositories.GroupMessageRepository;
+import org.sdi.chatmanager.repositories.GroupRepository;
 import org.sdi.chatmanager.repositories.MessageRepository;
 import org.sdi.chatmanager.repositories.UserRepository;
+import org.sdi.chatmanager.services.GroupMessageService;
 import org.sdi.chatmanager.services.MessageService;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class MessageServiceImpl implements MessageService {
 
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
+    private final GroupRepository groupRepository;
+    private final GroupMessageService groupMessageService;
+    private final GroupMessageRepository groupMessageRepository;
 
-    public MessageServiceImpl(MessageRepository messageRepository, UserRepository userRepository) {
+    public MessageServiceImpl(MessageRepository messageRepository, UserRepository userRepository, GroupRepository groupRepository, GroupMessageService groupMessageService, GroupMessageRepository groupMessageRepository) {
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
+        this.groupRepository = groupRepository;
+        this.groupMessageService = groupMessageService;
+        this.groupMessageRepository = groupMessageRepository;
     }
 
     @Override
@@ -126,6 +138,28 @@ public class MessageServiceImpl implements MessageService {
             conversationResponses.add(conversationResponse);
         }
 
+        List<Group> userGroups = groupRepository.findAll().stream()
+                .filter(group -> group.getMembers().contains(user) || group.getOwner().equals(user))
+                .toList();
+
+        for (Group group : userGroups) {
+            List<GroupMessage> groupMessages = groupMessageRepository.findAllByGroup(group);
+
+            GroupMessage lastMessage = groupMessages.stream()
+                    .max(Comparator.comparing(GroupMessage::getTimestamp))
+                    .orElse(null);
+
+            if (lastMessage != null) {
+                ConversationResponse groupConversation = new ConversationResponse();
+                groupConversation.setLastMessage(lastMessage.getText());
+                groupConversation.setLastMessageTimestamp(lastMessage.getTimestamp());
+                groupConversation.setPrivateConversation(false);
+                groupConversation.setGroupName(group.getName());
+                groupConversation.setGroupId(group.getId());
+                conversationResponses.add(groupConversation);
+            }
+        }
+
         return conversationResponses;
     }
 
@@ -134,6 +168,7 @@ public class MessageServiceImpl implements MessageService {
         conversationResponse.setLastMessage(lastMessage.getText());
         conversationResponse.setLastMessageTimestamp(lastMessage.getTimestamp());
         conversationResponse.setSent(Objects.equals(lastMessage.getSender().getId(), userId));
+        conversationResponse.setPrivateConversation(true);
 
         if (Objects.equals(lastMessage.getSender().getId(), userId)) {
             conversationResponse.setFirstName(lastMessage.getRecipient().getFirstName());

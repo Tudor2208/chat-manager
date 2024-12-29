@@ -10,6 +10,33 @@ public class ConversationResponse {
     private String lastName;
     private Long friendId;
     private boolean isSent;
+    private boolean isPrivateConversation;
+    private String groupName;
+    private Long groupId;
+
+    public Long getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(Long groupId) {
+        this.groupId = groupId;
+    }
+
+    public boolean isPrivateConversation() {
+        return isPrivateConversation;
+    }
+
+    public void setPrivateConversation(boolean privateConversation) {
+        isPrivateConversation = privateConversation;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
 
     public Long getFriendId() {
         return friendId;
