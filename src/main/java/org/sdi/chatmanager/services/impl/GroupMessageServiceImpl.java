@@ -30,7 +30,7 @@ public class GroupMessageServiceImpl implements GroupMessageService {
     }
 
     @Override
-    public void createGroupMessage(CreateGroupMessageRequest request) {
+    public GroupMessageResponse createGroupMessage(CreateGroupMessageRequest request) {
         Group group = groupRepository.findById(request.getGroupId())
                 .orElseThrow(() -> new NotFoundException("Group with ID " + request.getGroupId() + " not found"));
 
@@ -43,7 +43,20 @@ public class GroupMessageServiceImpl implements GroupMessageService {
         groupMessage.setText(request.getText());
         groupMessage.setGroup(group);
         groupMessage.setSender(user);
-        groupMessageRepository.save(groupMessage);
+
+        var savedMessage = groupMessageRepository.save(groupMessage);
+
+        GroupMessageResponse groupMessageResponse = new GroupMessageResponse();
+        groupMessageResponse.setEdited(savedMessage.isEdited());
+        groupMessageResponse.setTimestamp(savedMessage.getTimestamp());
+        groupMessageResponse.setText(savedMessage.getText());
+        groupMessageResponse.setGroupId(savedMessage.getGroup().getId());
+        groupMessageResponse.setSenderId(savedMessage.getSender().getId());
+        groupMessageResponse.setId(savedMessage.getId());
+        groupMessageResponse.setSenderFirstName(savedMessage.getSender().getFirstName());
+        groupMessageResponse.setSenderLastName(savedMessage.getSender().getLastName());
+
+        return groupMessageResponse;
     }
 
     @Override
@@ -67,10 +80,11 @@ public class GroupMessageServiceImpl implements GroupMessageService {
     }
 
     @Override
-    public void deleteGroupMessage(Long messageId) {
+    public GroupMessage deleteGroupMessage(Long messageId) {
         GroupMessage groupMessage = groupMessageRepository.findById(messageId)
                 .orElseThrow(() -> new NotFoundException("Group message with ID " + messageId + " not found"));
         groupMessageRepository.delete(groupMessage);
+        return groupMessage;
     }
 
     @Override
@@ -88,6 +102,8 @@ public class GroupMessageServiceImpl implements GroupMessageService {
         groupMessageResponse.setText(request.getText());
         groupMessageResponse.setGroupId(groupMessage.getGroup().getId());
         groupMessageResponse.setSenderId(groupMessage.getSender().getId());
+        groupMessageResponse.setSenderFirstName(groupMessage.getSender().getFirstName());
+        groupMessageResponse.setSenderLastName(groupMessage.getSender().getLastName());
         return groupMessageResponse;
     }
 }

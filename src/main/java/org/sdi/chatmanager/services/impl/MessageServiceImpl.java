@@ -18,7 +18,6 @@ import org.sdi.chatmanager.services.MessageService;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 @Service
 public class MessageServiceImpl implements MessageService {
@@ -38,7 +37,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void createMessage(CreateMessageRequest createMessageRequest) {
+    public Message createMessage(CreateMessageRequest createMessageRequest) {
         User sender = userRepository.findById(createMessageRequest.getSenderId())
                 .orElseThrow(() -> new NotFoundException("User with ID " + createMessageRequest.getSenderId() + " not found"));
 
@@ -51,7 +50,7 @@ public class MessageServiceImpl implements MessageService {
         message.setText(createMessageRequest.getText());
         message.setTimestamp(new Date());
         message.setEdited(false);
-        messageRepository.save(message);
+        return messageRepository.save(message);
     }
 
     @Override
@@ -83,10 +82,11 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void deleteMessage(Long messageId) {
+    public Message deleteMessage(Long messageId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new NotFoundException("Message with ID " + messageId + " not found"));
         messageRepository.delete(message);
+        return message;
     }
 
     @Override

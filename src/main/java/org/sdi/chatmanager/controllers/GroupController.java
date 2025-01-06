@@ -1,9 +1,11 @@
 package org.sdi.chatmanager.controllers;
 
 import jakarta.validation.Valid;
+import org.sdi.chatmanager.dtos.CreateGroupMessageRequest;
 import org.sdi.chatmanager.dtos.CreateGroupRequest;
 import org.sdi.chatmanager.dtos.GroupResponse;
 import org.sdi.chatmanager.dtos.PatchGroupRequest;
+import org.sdi.chatmanager.services.GroupMessageService;
 import org.sdi.chatmanager.services.GroupService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -17,14 +19,21 @@ import java.util.List;
 public class GroupController {
 
     private final GroupService groupService;
+    private final GroupMessageService groupMessageService;
 
-    public GroupController(GroupService groupService) {
+    public GroupController(GroupService groupService, GroupMessageService groupMessageService) {
         this.groupService = groupService;
+        this.groupMessageService = groupMessageService;
     }
 
     @PostMapping
     public ResponseEntity<Void> createGroup(@RequestBody @Valid CreateGroupRequest createGroupRequest) {
-        groupService.createGroup(createGroupRequest);
+        var group = groupService.createGroup(createGroupRequest);
+        CreateGroupMessageRequest createGroupMessageRequest = new CreateGroupMessageRequest();
+        createGroupMessageRequest.setGroupId(group.getId());
+        createGroupMessageRequest.setSenderId(group.getOwner().getId());
+        createGroupMessageRequest.setText("Welcome to the group!");
+        groupMessageService.createGroupMessage(createGroupMessageRequest);
         return ResponseEntity.noContent().build();
     }
 

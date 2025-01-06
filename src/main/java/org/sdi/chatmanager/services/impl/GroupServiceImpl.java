@@ -30,13 +30,13 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public void createGroup(CreateGroupRequest createGroupRequest) {
+    public Group createGroup(CreateGroupRequest createGroupRequest) {
         User user = userRepository.findById(createGroupRequest.getOwnerId())
                 .orElseThrow(() -> new NotFoundException("User with ID " + createGroupRequest.getOwnerId() + " not found"));
         Group group = new Group();
         group.setName(createGroupRequest.getName());
         group.setOwner(user);
-        groupRepository.save(group);
+        return groupRepository.save(group);
     }
 
     @Override

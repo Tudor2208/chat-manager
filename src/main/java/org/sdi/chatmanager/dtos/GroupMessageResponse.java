@@ -10,6 +10,8 @@ public class GroupMessageResponse {
     private String text;
     private Date timestamp;
     private boolean edited;
+    private String senderFirstName;
+    private String senderLastName;
 
     public Long getId() {
         return id;
@@ -57,5 +59,21 @@ public class GroupMessageResponse {
 
     public void setEdited(boolean edited) {
         this.edited = edited;
+    }
+
+    public String getSenderFirstName() {
+        return senderFirstName;
+    }
+
+    public void setSenderFirstName(String senderFirstName) {
+        this.senderFirstName = senderFirstName;
+    }
+
+    public String getSenderLastName() {
+        return senderLastName;
+    }
+
+    public void setSenderLastName(String senderLastName) {
+        this.senderLastName = senderLastName;
     }
 }
