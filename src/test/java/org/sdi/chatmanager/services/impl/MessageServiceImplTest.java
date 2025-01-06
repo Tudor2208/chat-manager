@@ -2,6 +2,7 @@ package org.sdi.chatmanager.services.impl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.sdi.chatmanager.dtos.ConversationResponse;
@@ -35,12 +36,12 @@ public class MessageServiceImplTest {
     @Mock
     private GroupMessageRepository groupMessageRepository;
 
+    @InjectMocks
     private MessageServiceImpl messageService;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        messageService = new MessageServiceImpl(messageRepository, userRepository, groupRepository, groupMessageService, groupMessageRepository);
     }
 
     @Test

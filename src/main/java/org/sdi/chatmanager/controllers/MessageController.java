@@ -1,15 +1,15 @@
 package org.sdi.chatmanager.controllers;
 
 import jakarta.validation.Valid;
-import org.sdi.chatmanager.dtos.ConversationResponse;
-import org.sdi.chatmanager.dtos.CreateMessageRequest;
-import org.sdi.chatmanager.dtos.MessageResponse;
-import org.sdi.chatmanager.dtos.PatchMessageRequest;
+import org.sdi.chatmanager.dtos.*;
 import org.sdi.chatmanager.services.MessageService;
 import org.sdi.chatmanager.websocket.ChatWebSocketHandler;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -36,11 +36,30 @@ public class MessageController {
                 message.getRecipient().getId(),
                 message.getText(),
                 message.getTimestamp(),
-                message.isEdited()
+                message.isEdited(),
+                null
         );
         chatWebSocketHandler.sendMessage(createMessageRequest.getSenderId(), ChatWebSocketHandler.MessageType.DIRECT_MESSAGE_CREATE, messageResponse);
         chatWebSocketHandler.sendMessage(createMessageRequest.getRecipientId(), ChatWebSocketHandler.MessageType.DIRECT_MESSAGE_CREATE, messageResponse);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/audio")
+    public ResponseEntity<Void> uploadVocalMessage(
+            @RequestPart("file") MultipartFile file,
+            @RequestParam("senderId") Long senderId,
+            @RequestParam("recipientId") Long recipientId) {
+
+        messageService.uploadVocalMessage(file, senderId, recipientId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/audio/{messageId}")
+    public ResponseEntity<Resource> streamAudio(@PathVariable Long messageId) {
+        Resource resource = messageService.streamAudio(messageId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 
     @GetMapping("/conversation")

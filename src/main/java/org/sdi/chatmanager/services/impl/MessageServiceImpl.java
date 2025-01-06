@@ -1,9 +1,6 @@
 package org.sdi.chatmanager.services.impl;
 
-import org.sdi.chatmanager.dtos.ConversationResponse;
-import org.sdi.chatmanager.dtos.CreateMessageRequest;
-import org.sdi.chatmanager.dtos.MessageResponse;
-import org.sdi.chatmanager.dtos.PatchMessageRequest;
+import org.sdi.chatmanager.dtos.*;
 import org.sdi.chatmanager.entities.Group;
 import org.sdi.chatmanager.entities.GroupMessage;
 import org.sdi.chatmanager.entities.Message;
@@ -13,10 +10,13 @@ import org.sdi.chatmanager.repositories.GroupMessageRepository;
 import org.sdi.chatmanager.repositories.GroupRepository;
 import org.sdi.chatmanager.repositories.MessageRepository;
 import org.sdi.chatmanager.repositories.UserRepository;
-import org.sdi.chatmanager.services.GroupMessageService;
 import org.sdi.chatmanager.services.MessageService;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -25,14 +25,12 @@ public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
-    private final GroupMessageService groupMessageService;
     private final GroupMessageRepository groupMessageRepository;
 
-    public MessageServiceImpl(MessageRepository messageRepository, UserRepository userRepository, GroupRepository groupRepository, GroupMessageService groupMessageService, GroupMessageRepository groupMessageRepository) {
+    public MessageServiceImpl(MessageRepository messageRepository, UserRepository userRepository, GroupRepository groupRepository, GroupMessageRepository groupMessageRepository) {
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
-        this.groupMessageService = groupMessageService;
         this.groupMessageRepository = groupMessageRepository;
     }
 
@@ -51,6 +49,41 @@ public class MessageServiceImpl implements MessageService {
         message.setTimestamp(new Date());
         message.setEdited(false);
         return messageRepository.save(message);
+    }
+
+    @Override
+    public void uploadVocalMessage(MultipartFile file, Long senderId, Long recipientId) {
+        try{
+            User sender = userRepository.findById(senderId)
+                    .orElseThrow(() -> new NotFoundException("User with ID " + senderId + " not found"));
+
+            User recipient = userRepository.findById(recipientId)
+                    .orElseThrow(() -> new NotFoundException("User with ID " + recipientId + " not found"));
+
+            Message message = new Message();
+            message.setSender(sender);
+            message.setRecipient(recipient);
+            message.setAudioData(file.getBytes());
+            message.setTimestamp(new Date());
+            message.setEdited(false);
+            messageRepository.save(message);
+        } catch (IOException e) {
+            throw new RuntimeException("Error uploading file");
+        }
+    }
+
+    @Override
+    public Resource streamAudio(Long messageId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new NotFoundException("Message with ID " + messageId + " not found"));
+
+        byte[] audioData = message.getAudioData();
+        if (audioData != null) {
+            ByteArrayResource resource = new ByteArrayResource(audioData);
+            return resource;
+        } else {
+            throw new RuntimeException("Audio data not found");
+        }
     }
 
     @Override
@@ -76,7 +109,8 @@ public class MessageServiceImpl implements MessageService {
                         message.getRecipient().getId(),
                         message.getText(),
                         message.getTimestamp(),
-                        message.isEdited()
+                        message.isEdited(),
+                        message.getAudioData()
                 ))
                 .toList();
     }
@@ -104,7 +138,8 @@ public class MessageServiceImpl implements MessageService {
                 message.getRecipient().getId(),
                 message.getText(),
                 message.getTimestamp(),
-                message.isEdited()
+                message.isEdited(),
+                message.getAudioData()
         );
     }
 

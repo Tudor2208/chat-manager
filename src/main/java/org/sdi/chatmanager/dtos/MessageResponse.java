@@ -9,14 +9,24 @@ public class MessageResponse {
     private String text;
     private Date timestamp;
     private boolean edited;
+    private byte[] audioData;
 
-    public MessageResponse(Long id, Long senderId, Long recipientId, String text, Date timestamp, boolean edited) {
+    public MessageResponse(Long id, Long senderId, Long recipientId, String text, Date timestamp, boolean edited, byte[] audioData) {
         this.id = id;
         this.senderId = senderId;
         this.recipientId = recipientId;
         this.text = text;
         this.timestamp = timestamp;
         this.edited = edited;
+        this.audioData = audioData;
+    }
+
+    public byte[] getAudioData() {
+        return audioData;
+    }
+
+    public void setAudioData(byte[] audioData) {
+        this.audioData = audioData;
     }
 
     public boolean isEdited() {
