@@ -5,10 +5,12 @@ import org.sdi.chatmanager.dtos.GroupResponse;
 import org.sdi.chatmanager.dtos.PatchGroupRequest;
 import org.sdi.chatmanager.entities.Group;
 import org.sdi.chatmanager.entities.GroupInvite;
+import org.sdi.chatmanager.entities.GroupMessage;
 import org.sdi.chatmanager.entities.User;
 import org.sdi.chatmanager.exceptions.ExistingMemberException;
 import org.sdi.chatmanager.exceptions.NotFoundException;
 import org.sdi.chatmanager.repositories.GroupInviteRepository;
+import org.sdi.chatmanager.repositories.GroupMessageRepository;
 import org.sdi.chatmanager.repositories.GroupRepository;
 import org.sdi.chatmanager.repositories.UserRepository;
 import org.sdi.chatmanager.services.GroupService;
@@ -22,11 +24,13 @@ public class GroupServiceImpl implements GroupService {
     private final UserRepository userRepository;
     private final GroupRepository groupRepository;
     private final GroupInviteRepository groupInviteRepository;
+    private final GroupMessageRepository groupMessageRepository;
 
-    public GroupServiceImpl(UserRepository userRepository, GroupRepository groupRepository, GroupInviteRepository groupInviteRepository) {
+    public GroupServiceImpl(UserRepository userRepository, GroupRepository groupRepository, GroupInviteRepository groupInviteRepository, GroupMessageRepository groupMessageRepository) {
         this.userRepository = userRepository;
         this.groupRepository = groupRepository;
         this.groupInviteRepository = groupInviteRepository;
+        this.groupMessageRepository = groupMessageRepository;
     }
 
     @Override
@@ -79,8 +83,11 @@ public class GroupServiceImpl implements GroupService {
     public void deleteGroup(Long groupId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new NotFoundException("Group with ID " + groupId + " not found"));
-        List<GroupInvite> allByGroup = groupInviteRepository.findAllByGroup(group);
-        groupInviteRepository.deleteAll(allByGroup);
+        List<GroupInvite> allGroupInvites = groupInviteRepository.findAllByGroup(group);
+        List<GroupMessage> allGroupMessages = groupMessageRepository.findAllByGroup(group);
+
+        groupMessageRepository.deleteAll(allGroupMessages);
+        groupInviteRepository.deleteAll(allGroupInvites);
         groupRepository.delete(group);
     }
 

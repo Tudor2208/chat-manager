@@ -18,6 +18,16 @@ public class GroupMessage {
     private String text;
     private Date timestamp;
     private boolean edited;
+    @Lob
+    private byte[] audioData;
+
+    public byte[] getAudioData() {
+        return audioData;
+    }
+
+    public void setAudioData(byte[] audioData) {
+        this.audioData = audioData;
+    }
 
     public User getSender() {
         return sender;

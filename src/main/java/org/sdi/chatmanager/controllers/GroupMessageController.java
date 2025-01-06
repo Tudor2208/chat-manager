@@ -8,9 +8,12 @@ import org.sdi.chatmanager.entities.GroupMessage;
 import org.sdi.chatmanager.repositories.GroupRepository;
 import org.sdi.chatmanager.services.GroupMessageService;
 import org.sdi.chatmanager.websocket.ChatWebSocketHandler;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -70,5 +73,23 @@ public class GroupMessageController {
             chatWebSocketHandler.sendMessage(group.getOwner().getId(), ChatWebSocketHandler.MessageType.GROUP_MESSAGE_PATCH, messageResponse);
         });
         return ResponseEntity.ok(messageResponse);
+    }
+
+    @PostMapping("/audio")
+    public ResponseEntity<Void> uploadVocalMessage(
+            @RequestPart("file") MultipartFile file,
+            @RequestParam("senderId") Long senderId,
+            @RequestParam("groupId") Long groupId) {
+
+        groupMessageService.uploadVocalMessage(file, senderId, groupId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/audio/{messageId}")
+    public ResponseEntity<Resource> streamAudio(@PathVariable Long messageId) {
+        Resource resource = groupMessageService.streamAudio(messageId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
     }
 }

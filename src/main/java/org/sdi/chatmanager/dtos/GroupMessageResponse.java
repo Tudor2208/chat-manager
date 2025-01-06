@@ -12,6 +12,15 @@ public class GroupMessageResponse {
     private boolean edited;
     private String senderFirstName;
     private String senderLastName;
+    private byte[] audioData;
+
+    public byte[] getAudioData() {
+        return audioData;
+    }
+
+    public void setAudioData(byte[] audioData) {
+        this.audioData = audioData;
+    }
 
     public Long getId() {
         return id;
