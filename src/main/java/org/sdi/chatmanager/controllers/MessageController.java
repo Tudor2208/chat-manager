@@ -50,7 +50,9 @@ public class MessageController {
             @RequestParam("senderId") Long senderId,
             @RequestParam("recipientId") Long recipientId) {
 
-        messageService.uploadVocalMessage(file, senderId, recipientId);
+        var message = messageService.uploadVocalMessage(file, senderId, recipientId);
+        chatWebSocketHandler.sendMessage(senderId, ChatWebSocketHandler.MessageType.DIRECT_MESSAGE_CREATE, message);
+        chatWebSocketHandler.sendMessage(recipientId, ChatWebSocketHandler.MessageType.DIRECT_MESSAGE_CREATE, message);
         return ResponseEntity.noContent().build();
     }
 

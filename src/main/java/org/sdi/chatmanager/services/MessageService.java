@@ -11,7 +11,7 @@ import java.util.List;
 @Component
 public interface MessageService {
     Message createMessage(CreateMessageRequest createMessageRequest);
-    void uploadVocalMessage(MultipartFile file, Long senderId, Long recipientId);
+    Message uploadVocalMessage(MultipartFile file, Long senderId, Long recipientId);
     Resource streamAudio(Long messageId);
     List<MessageResponse> getConversation(Long userId1, Long recipientId);
     Message deleteMessage(Long messageId);

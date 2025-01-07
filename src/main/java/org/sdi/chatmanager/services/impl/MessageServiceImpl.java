@@ -52,7 +52,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void uploadVocalMessage(MultipartFile file, Long senderId, Long recipientId) {
+    public Message uploadVocalMessage(MultipartFile file, Long senderId, Long recipientId) {
         try{
             User sender = userRepository.findById(senderId)
                     .orElseThrow(() -> new NotFoundException("User with ID " + senderId + " not found"));
@@ -66,7 +66,7 @@ public class MessageServiceImpl implements MessageService {
             message.setAudioData(file.getBytes());
             message.setTimestamp(new Date());
             message.setEdited(false);
-            messageRepository.save(message);
+            return messageRepository.save(message);
         } catch (IOException e) {
             throw new RuntimeException("Error uploading file");
         }

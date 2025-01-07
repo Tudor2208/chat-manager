@@ -8,6 +8,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.util.Map;
+
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
@@ -24,7 +26,36 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        sessions.put(Long.valueOf(message.getPayload()), session);
+        ObjectMapper objectMapper = new ObjectMapper();
+        IncomingMessage incomingMessage = objectMapper.readValue(message.getPayload(), IncomingMessage.class);
+
+        switch (incomingMessage.getType()) {
+            case SUBSCRIBE -> handleSubscription(session, incomingMessage);
+            case TYPING -> handleTyping(incomingMessage);
+            case SEEN -> handleSeen(incomingMessage);
+            default -> System.out.println("Unhandled message type: " + incomingMessage.getType());
+        }
+    }
+
+    private void handleSubscription(WebSocketSession session, IncomingMessage message) {
+        Long userId = message.getSenderId();
+        sessions.put(userId, session);
+        System.out.println("User subscribed: " + userId);
+    }
+
+    private void handleTyping(IncomingMessage message) {
+        Long senderId = message.getSenderId();
+        Long recipientId = message.getRecipientId();
+        boolean isTyping = (boolean) message.getContent();
+
+        sendMessage(recipientId, MessageType.TYPING, Map.of("senderId", senderId, "isTyping", isTyping));
+    }
+
+    private void handleSeen(IncomingMessage message) {
+        Long senderId = message.getSenderId();
+        Long recipientId = message.getRecipientId();
+
+        sendMessage(recipientId, MessageType.SEEN, Map.of("senderId", senderId));
     }
 
     @Override
@@ -50,6 +81,46 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    private static class IncomingMessage {
+
+        private MessageType type;
+        private Long senderId;
+        private Long recipientId;
+        private Object content;
+
+        public MessageType getType() {
+            return type;
+        }
+
+        public void setType(MessageType type) {
+            this.type = type;
+        }
+
+        public Long getSenderId() {
+            return senderId;
+        }
+
+        public void setSenderId(Long senderId) {
+            this.senderId = senderId;
+        }
+
+        public Long getRecipientId() {
+            return recipientId;
+        }
+
+        public void setRecipientId(Long recipientId) {
+            this.recipientId = recipientId;
+        }
+
+        public Object getContent() {
+            return content;
+        }
+
+        public void setContent(Object content) {
+            this.content = content;
+        }
+    }
+
     private record Message(MessageType type, Object message) {
     }
 
@@ -60,6 +131,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         DIRECT_MESSAGE_PATCH,
         GROUP_MESSAGE_CREATE,
         GROUP_MESSAGE_DELETE,
-        GROUP_MESSAGE_PATCH
+        GROUP_MESSAGE_PATCH,
+        SUBSCRIBE,
+        TYPING,
+        SEEN
     }
 }
